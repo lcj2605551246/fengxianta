@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070a12">
+<title>风仙塔工作室 · 用代码搭塔，用像素造世界</title>
+<meta name="description" content="风仙塔工作室：写引擎、做游戏、也做些顺手的小工具。">
+<style>
+:root{
+  --bg:#070a12; --panel:#0b1120; --panel2:#0e1526; --line:#1b2438;
+  --text:#e9effc; --dim:#8794ae; --dim2:#5e6a82;
+  --accent:#6ee7ff; --accent2:#a78bfa; --ok:#34d399;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font:16px/1.7 "Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+/* 背景：网格 + 双色光斑 */
+body::before{
+  content:""; position:fixed; inset:0; z-index:-2; pointer-events:none;
+  background:
+    radial-gradient(700px 500px at 18% -8%, rgba(110,231,255,.16), transparent 65%),
+    radial-gradient(600px 480px at 88% 8%, rgba(167,139,250,.13), transparent 62%),
+    radial-gradient(900px 700px at 50% 105%, rgba(110,231,255,.06), transparent 70%);
+}
+body::after{
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.55;
+  background-image:
+    linear-gradient(rgba(110,231,255,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(110,231,255,.055) 1px, transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(circle at 50% 30%, #000 0%, transparent 78%);
+  -webkit-mask-image:radial-gradient(circle at 50% 30%, #000 0%, transparent 78%);
+}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+
+/* 顶栏 */
+.nav{
+  position:sticky; top:0; z-index:20;
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  background:rgba(7,10,18,.72); border-bottom:1px solid rgba(27,36,56,.8);
+}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.06em;font-size:15px}
+.brand svg{width:24px;height:24px;flex:none}
+.nav nav{display:flex;gap:22px;font-size:14px;color:var(--dim)}
+.nav nav a{position:relative;padding:4px 0;transition:color .25s}
+.nav nav a:hover{color:var(--text)}
+.nav nav a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:1px;background:var(--accent);transition:right .3s}
+.nav nav a:hover::after{right:0}
+
+/* 首屏 */
+.hero{padding:86px 0 64px;text-align:center;position:relative}
+.mark{width:190px;height:190px;margin:0 auto 26px;position:relative}
+.mark .halo{
+  position:absolute;inset:-34px;border-radius:50%;
+  background:conic-gradient(from 0deg, transparent 0 30%, rgba(110,231,255,.22) 45%, transparent 60% 100%);
+  filter:blur(14px);animation:spin 14s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.mark svg{width:100%;height:100%;position:relative;overflow:visible}
+.mark line{
+  stroke:#eaf3ff;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:100;stroke-dashoffset:100;
+  animation:draw 1.6s cubic-bezier(.45,0,.2,1) forwards;
+  filter:drop-shadow(0 0 6px rgba(110,231,255,.55));
+}
+@keyframes draw{to{stroke-dashoffset:0}}
+h1{
+  margin:0 0 14px;font-size:clamp(30px,7vw,46px);letter-spacing:.14em;font-weight:800;
+  background:linear-gradient(180deg,#fff 20%,#9fb6d8 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.tagline{margin:0 0 34px;color:var(--dim);font-size:clamp(14px,3.4vw,17px);letter-spacing:.14em}
+.cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 26px;border-radius:999px;
+  border:1px solid var(--line);background:rgba(14,21,38,.7);color:var(--text);
+  font-size:14px;letter-spacing:.08em;transition:.25s;cursor:pointer;
+}
+.btn:hover{border-color:rgba(110,231,255,.5);transform:translateY(-2px);box-shadow:0 10px 30px -14px rgba(110,231,255,.6)}
+.btn.primary{background:linear-gradient(120deg,#6ee7ff,#a78bfa);color:#060a14;border:none;font-weight:700}
+.btn.primary:hover{box-shadow:0 14px 34px -12px rgba(140,180,255,.75)}
+
+/* 分区 */
+section{padding:64px 0;position:relative}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:26px}
+.sec-head h2{margin:0;font-size:13px;letter-spacing:.32em;color:var(--dim);font-weight:600}
+.sec-head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.lead{margin:0 0 34px;max-width:640px;color:#c3cfe4;font-size:clamp(15px,3.6vw,17px);line-height:1.85}
+
+/* 作品卡 */
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.card{
+  position:relative;padding:22px 20px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(14,21,38,.92),rgba(11,17,32,.92));
+  border:1px solid var(--line);transition:transform .28s,border-color .28s,box-shadow .28s;
+}
+.card::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.card:hover{transform:translateY(-4px);border-color:rgba(110,231,255,.35);box-shadow:0 18px 44px -26px rgba(110,231,255,.55)}
+.card:hover::before{opacity:1}
+.card .kind{font-size:11px;letter-spacing:.2em;color:var(--accent);opacity:.85;margin-bottom:8px}
+.card h3{margin:0 0 8px;font-size:19px;letter-spacing:.04em}
+.card p{margin:0 0 16px;color:var(--dim);font-size:13.5px;line-height:1.75}
+.card .tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim2)}
+.tag.live{color:var(--ok);border-color:rgba(52,211,153,.35)}
+
+/* 关于 */
+.about-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.about-grid .card p{margin:0}
+.about-grid .card h4{margin:0 0 8px;font-size:13px;letter-spacing:.16em;color:var(--accent);font-weight:600}
+
+/* 联系 */
+.contact{display:flex;flex-wrap:wrap;gap:14px}
+.lnk{
+  display:flex;align-items:center;gap:10px;padding:14px 20px;border-radius:12px;
+  border:1px solid var(--line);background:rgba(14,21,38,.7);font-size:14px;
+  transition:.25s;min-width:max-content;
+}
+.lnk:hover{border-color:rgba(167,139,250,.55);background:rgba(20,28,50,.9)}
+.lnk .ico{width:18px;height:18px;color:var(--accent2)}
+.lnk small{display:block;color:var(--dim2);font-size:11.5px;letter-spacing:.04em}
+
+footer{
+  border-top:1px solid rgba(27,36,56,.8);padding:26px 0 34px;margin-top:20px;
+  color:var(--dim2);font-size:12px;letter-spacing:.06em;
+}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#自检{color:var(--ok)}
+#自检.bad{color:#f87171}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+@media (max-width:520px){
+  .nav nav{gap:14px;font-size:13px}
+  .mark{width:150px;height:150px}
+  .brand span{display:none}
+  .brand::after{content:"风仙塔";font-weight:700;letter-spacing:.08em}
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#eaf3ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <line x1="50" y1="11.5" x2="11.78" y2="50"/><line x1="33.5" y1="28.12" x2="66.5" y2="31.88"/><line x1="66.5" y1="31.88" x2="50" y2="11.5"/>
+        <line x1="50" y1="88.5" x2="88.22" y2="50"/><line x1="66.5" y1="71.88" x2="33.5" y2="68.12"/><line x1="33.5" y1="68.12" x2="50" y2="88.5"/>
+        <line x1="66.5" y1="31.88" x2="33.5" y2="68.12"/><line x1="11.78" y1="50" x2="88.22" y2="50"/>
+      </g></svg>
+      <span>风仙塔工作室</span>
+    </a>
+    <nav>
+      <a href="#works">作品</a>
+      <a href="#about">关于</a>
+      <a href="#contact">联系</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero wrap">
+    <div class="mark">
+      <div class="halo"></div>
+      <svg viewBox="0 0 100 100" role="img" aria-label="风仙塔工作室标志"><g>
+        <line x1="50" y1="11.5" x2="11.78" y2="50"/><line x1="33.5" y1="28.12" x2="66.5" y2="31.88"/><line x1="66.5" y1="31.88" x2="50" y2="11.5"/>
+        <line x1="50" y1="88.5" x2="88.22" y2="50"/><line x1="66.5" y1="71.88" x2="33.5" y2="68.12"/><line x1="33.5" y1="68.12" x2="50" y2="88.5"/>
+        <line x1="66.5" y1="31.88" x2="33.5" y2="68.12"/><line x1="11.78" y1="50" x2="88.22" y2="50"/>
+      </g></svg>
+    </div>
+    <h1>风仙塔工作室</h1>
+    <p class="tagline">用代码搭塔，用像素造世界</p>
+    <div class="cta">
+      <a class="btn primary" href="#works">看看作品</a>
+      <a class="btn" href="#about">关于我们</a>
+    </div>
+  </section>
+
+  <section id="works" class="wrap">
+    <div class="sec-head"><h2>作 品</h2><div class="rule"></div></div>
+    <p class="lead">从引擎到成品，都是自己一行行写出来的。</p>
+    <div class="grid">
+      <article class="card">
+        <div class="kind">2D 竖屏 · 回合制 RPG</div>
+        <h3>机宠训练师</h3>
+        <p>未来生活与动物底盘的世界：11×11 格子回合制，下矿、战斗、改装、再下矿，主线是机宠高考。</p>
+        <div class="tags"><span class="tag live">开发中</span><span class="tag">回合制</span><span class="tag">搜打撤</span></div>
+      </article>
+      <article class="card">
+        <div class="kind">3D 第一人称 · 摸金撤离</div>
+        <h3>摸金 · 三层撤离</h3>
+        <p>三层地穴，越往下明器越贵。带不走的是命，带得出来的才是钱。</p>
+        <div class="tags"><span class="tag live">开发中</span><span class="tag">撤离</span><span class="tag">程序化地牢</span></div>
+      </article>
+      <article class="card">
+        <div class="kind">自研引擎 · 零依赖</div>
+        <h3>偏印引擎</h3>
+        <p>2D 与 3D 一套内核，零外部依赖、能离线跑；CPU 软光栅与 WebGL 双后端，自带无头仿真与自检。</p>
+        <div class="tags"><span class="tag live">持续迭代</span><span class="tag">CPU 光栅</span><span class="tag">WebGL</span></div>
+      </article>
+      <article class="card">
+        <div class="kind">Android 工具</div>
+        <h3>变声球</h3>
+        <p>74 KB 的变声小工具：绑定任意 App，下载、朗读、变声一条龙。</p>
+        <div class="tags"><span class="tag">已发布</span><span class="tag">轻量</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section id="about" class="wrap">
+    <div class="sec-head"><h2>关 于</h2><div class="rule"></div></div>
+    <p class="lead">风仙塔工作室是一个人的工坊：写引擎、做游戏、也做些顺手的小工具。<br>我们相信好玩的游戏不必联网，好的工具不必臃肿。</p>
+    <div class="about-grid">
+      <div class="card"><h4>自 己 写</h4><p>能自己实现的就不外链。引擎、渲染、动画、打包，全部落在自己手里。</p></div>
+      <div class="card"><h4>离 线 跑</h4><p>断网也能玩。资源内联、零网络依赖，这是底线不是卖点。</p></div>
+      <div class="card"><h4>验 过 才 算</h4><p>每件作品都有自检：能跑多少条判据就给多少个 ✅，没验过的不算做完。</p></div>
+    </div>
+  </section>
+
+  <section id="contact" class="wrap">
+    <div class="sec-head"><h2>联 系</h2><div class="rule"></div></div>
+    <p class="lead">想聊游戏、聊技术，或者只是想看看我们在做什么，都欢迎。</p>
+    <div class="contact">
+      <a class="lnk" href="https://github.com/lcj2605551246" target="_blank" rel="noopener">
+        <svg class="ico" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        <span>GitHub<small>@lcj2605551246</small></span>
+      </a>
+      <a class="lnk" href="mailto:hello@fengxianta.com">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        <span>邮箱<small>hello@fengxianta.com</small></span>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>© 2026 风仙塔工作室 · 自包含单文件 · 零外链</div>
+    <div>页面自检 <span id="自检">…</span></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var r=[], ok=function(n,c){r.push({n:n,c:!!c});};
+  var svgs=document.querySelectorAll('svg');
+  var lines=document.querySelectorAll('.mark svg line');
+  ok('标志 8 段线', lines.length===8);
+  ok('标志对称', (function(){
+    var L=[].map.call(lines,function(e){return [+e.getAttribute('x1'),+e.getAttribute('y1'),+e.getAttribute('x2'),+e.getAttribute('y2')];});
+    var key=function(p,q){return p[0].toFixed(1)+','+p[1].toFixed(1)+'>'+q[0].toFixed(1)+','+q[1].toFixed(1);};
+    var S={}; L.forEach(function(l){S[key([l[0],l[1]],[l[2],l[3]])]=1;S[key([l[2],l[3]],[l[0],l[1]])]=1;});
+    return L.every(function(l){
+      var a=[100-l[0],100-l[1]], b=[100-l[2],100-l[3]];
+      return S[key(a,b)]||S[key(b,a)];
+    });
+  })());
+  ok('作品 4 张卡', document.querySelectorAll('#works .card').length===4);
+  ok('无外链资源', ![].some.call(document.querySelectorAll('script[src],link[rel=stylesheet],img[src]'),function(e){return e.src||e.href;}));
+  ok('标题含工作室', document.title.indexOf('风仙塔工作室')===0);
+  ok('联系区 2 个入口', document.querySelectorAll('#contact .lnk').length===2);
+  var pass=r.filter(function(x){return x.c;}).length;
+  var el=document.getElementById('自检');
+  el.textContent=pass+'/'+r.length+(pass===r.length?' ✅':' ❌');
+  if(pass!==r.length){el.className='bad';}
+  el.title=r.map(function(x){return (x.c?'✅ ':'❌ ')+x.n;}).join('\n');
+})();
+</script>
+</body>
+</html>
