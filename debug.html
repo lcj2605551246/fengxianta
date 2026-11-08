@@ -145,9 +145,6 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .brand::after{content:"风仙塔";font-weight:700;letter-spacing:.08em}
 }
 </style>
-<style>html{zoom:.42}</style>
-<div id="dbg" style="position:fixed;top:0;right:0;z-index:9999;background:#000;color:#0f0;font:12px/1.4 monospace;padding:3px 6px;border-radius:0 0 0 6px"></div>
-<script>document.getElementById('dbg').textContent='H='+document.documentElement.scrollHeight+' W='+innerWidth+' DPR='+devicePixelRatio;</script>
 </head>
 <body>
 
@@ -276,6 +273,12 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   if(pass!==r.length){el.className='bad';}
   el.title=r.map(function(x){return (x.c?'✅ ':'❌ ')+x.n;}).join('\n');
 })();
+</script>
+<div id="dbg" style="position:fixed;top:0;left:0;z-index:9999;background:#000;color:#0f0;font:12px/1.4 monospace;padding:3px 6px;border-radius:0 0 6px 0"></div>
+<script>
+var p=+(new URLSearchParams(location.search).get('p')||0);
+document.documentElement.style.marginTop=(-p*760)+'px';
+document.getElementById('dbg').textContent='p='+p+' H='+document.documentElement.scrollHeight+' W='+innerWidth;
 </script>
 </body>
 </html>
